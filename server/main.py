@@ -5,7 +5,7 @@ import threading
 import uuid
 from pathlib import Path
 
-from fastapi import Body, FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from server.env import FinSightEnv
@@ -57,12 +57,20 @@ def _write_leaderboard(data: list[dict]) -> None:
 
 
 @app.post("/reset")
-def reset(payload: ResetRequest | None = Body(default=None)):
+async def reset(request: Request):
     task_id = "easy"
     session_id: str | None = None
-    if payload is not None:
-        task_id = payload.task_id or "easy"
-        session_id = payload.session_id
+
+    try:
+        payload = await request.json()
+    except Exception:
+        payload = None
+
+    if isinstance(payload, dict):
+        task_id = str(payload.get("task_id") or "easy")
+        raw_session_id = payload.get("session_id")
+        if raw_session_id is not None:
+            session_id = str(raw_session_id)
 
     session_id = session_id or str(uuid.uuid4())
     try:
