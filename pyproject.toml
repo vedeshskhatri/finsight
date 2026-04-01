@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "finsight-env"
+version = "1.0.0"
+description = "Live Financial Operations Environment for AI agent training and evaluation."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  { name = "FinSight Team" }
+]
+dependencies = [
+  "fastapi>=0.111.0",
+  "uvicorn>=0.29.0",
+  "pydantic>=2.7.0",
+  "yfinance>=0.2.40",
+  "requests>=2.31.0",
+  "numpy>=1.26.4",
+  "openai>=1.30.0",
+  "scipy>=1.13.0"
+]
+
+[tool.setuptools.packages.find]
+include = ["server*"]
