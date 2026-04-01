@@ -1,0 +1,22 @@
+[
+  {
+    "session_id": "1ba25224-183f-4475-af13-0b3b40b7ea82",
+    "agent_name": "meta-llama/Llama-3.3-70B-Instruct",
+    "scores": {
+      "easy": 1.0,
+      "medium": 0.7899999999999999,
+      "hard": 0.8772522895725078
+    },
+    "total_score": 0.8890840965241692
+  },
+  {
+    "session_id": "b052015d-e8d1-4a1b-a265-50c1aa27941c",
+    "agent_name": "meta-llama/Llama-3.3-70B-Instruct",
+    "scores": {
+      "easy": 0.0,
+      "medium": 0.0,
+      "hard": 0.0
+    },
+    "total_score": 0.0
+  }
+]

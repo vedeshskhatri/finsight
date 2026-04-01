@@ -1,0 +1,33 @@
+name: finsight-env
+version: "1.0.0"
+description: >
+  Live Financial Operations Environment for AI agent training and evaluation.
+  Agents act as junior financial analysts performing earnings extraction,
+  anomaly triage, and portfolio rebalancing under market shock conditions.
+  Uses real-time data from Yahoo Finance (yfinance) with GBM synthetic fallback.
+author: "FinSight Team"
+tags: ["finance", "real-world", "live-data", "portfolio", "anomaly-detection"]
+tasks:
+  - id: easy
+    name: "Earnings Metric Extraction"
+    difficulty: easy
+    max_steps: 10
+    description: "Extract 5 financial metrics from a narrative earnings summary"
+  - id: medium
+    name: "Market Anomaly Triage"
+    difficulty: medium
+    max_steps: 10
+    description: "Identify anomalous ticker in a 5-stock price stream and classify severity"
+  - id: hard
+    name: "Portfolio Rebalancing Under Market Shock"
+    difficulty: hard
+    max_steps: 10
+    description: "Rebalance a shocked portfolio to equal weights in <=3 trades under constraints"
+observation_space: >
+  FinancialObservation: task context, step metadata, financial data payload,
+  available actions, data source indicator, human-readable instructions with examples
+action_space: >
+  FinancialAction: action_type (submit_answer|request_data|noop),
+  structured payload, reasoning string
+reward_range: [0.0, 1.0]
+endpoint: "http://localhost:7860"
