@@ -1,3 +1,12 @@
+---
+title: FinSight-Env
+emoji: "💹"
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # FinSight-Env
 
 ## Why This Environment Exists
