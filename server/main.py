@@ -101,6 +101,33 @@ def health():
     return {"status": "ok", "version": "1.0.0", "tasks_available": ["easy", "medium", "hard"]}
 
 
+@app.get("/")
+def root():
+    return {
+        "name": "FinSight-Env",
+        "status": "running",
+        "message": "Use /docs for interactive API docs, /health for status, and /tasks for task metadata.",
+        "endpoints": ["/health", "/tasks", "/reset", "/step", "/leaderboard", "/docs", "/web"],
+    }
+
+
+@app.get("/web")
+def web():
+    return {
+        "title": "FinSight-Env",
+        "description": "Live Financial Operations Environment for AI agent training and evaluation.",
+        "quickstart": {
+            "reset": {"method": "POST", "path": "/reset", "body": {"task_id": "easy", "session_id": "optional"}},
+            "step": {
+                "method": "POST",
+                "path": "/step",
+                "headers": {"X-Session-ID": "<session_id_from_reset>"},
+                "body": {"action_type": "noop", "payload": {}, "reasoning": "example"},
+            },
+        },
+    }
+
+
 @app.post("/leaderboard/submit")
 def leaderboard_submit(payload: LeaderboardSubmitRequest):
     total_score = payload.total_score
