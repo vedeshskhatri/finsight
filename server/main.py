@@ -5,7 +5,7 @@ import threading
 import uuid
 from pathlib import Path
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import Body, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from server.env import FinSightEnv
@@ -13,7 +13,7 @@ from server.models import FinancialAction, TaskInfo
 
 
 class ResetRequest(BaseModel):
-    task_id: str
+    task_id: str | None = "easy"
     session_id: str | None = None
 
 
@@ -57,10 +57,16 @@ def _write_leaderboard(data: list[dict]) -> None:
 
 
 @app.post("/reset")
-def reset(payload: ResetRequest):
-    session_id = payload.session_id or str(uuid.uuid4())
+def reset(payload: ResetRequest | None = Body(default=None)):
+    task_id = "easy"
+    session_id: str | None = None
+    if payload is not None:
+        task_id = payload.task_id or "easy"
+        session_id = payload.session_id
+
+    session_id = session_id or str(uuid.uuid4())
     try:
-        return env.reset(task_id=payload.task_id, session_id=session_id)
+        return env.reset(task_id=task_id, session_id=session_id)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:
