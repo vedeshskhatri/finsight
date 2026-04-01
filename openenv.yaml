@@ -31,3 +31,5 @@ action_space: >
   structured payload, reasoning string
 reward_range: [0.0, 1.0]
 endpoint: "http://localhost:7860"
+entrypoint: python -m server.app
+port: 7860

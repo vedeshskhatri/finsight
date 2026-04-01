@@ -24,7 +24,7 @@ dependencies = [
 ]
 
 [project.scripts]
-server = "server.entrypoint:main"
+server = "server.app:main"
 
 [tool.setuptools.packages.find]
 include = ["server*"]
