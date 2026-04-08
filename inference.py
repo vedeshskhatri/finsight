@@ -33,10 +33,23 @@ Respond with ONLY valid JSON. No markdown. No explanation outside the JSON."""
 
 
 def _emit_log(event: str, payload: dict[str, Any]) -> None:
-    print(
-        f"{event} {json.dumps(payload, ensure_ascii=True, separators=(',', ':'))}",
-        flush=True,
-    )
+    def _format_value(value: Any) -> str:
+        if isinstance(value, (int, float)):
+            return str(value)
+        if isinstance(value, bool):
+            return "true" if value else "false"
+        if value is None:
+            return "null"
+        if isinstance(value, str):
+            # Quote string values to keep parsing unambiguous.
+            return json.dumps(value, ensure_ascii=True)
+        return json.dumps(value, ensure_ascii=True, separators=(",", ":"))
+
+    fields = " ".join(f"{k}={_format_value(v)}" for k, v in payload.items())
+    if fields:
+        print(f"[{event}] {fields}", flush=True)
+    else:
+        print(f"[{event}]", flush=True)
 
 
 def _build_openai_client() -> tuple[Any | None, str | None]:
