@@ -4,9 +4,14 @@ import json
 import os
 import time
 import uuid
+from typing import Any
 
 import requests
-from openai import OpenAI
+
+try:
+    from openai import OpenAI
+except Exception:
+    OpenAI = None
 
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Llama-3.3-70B-Instruct")
@@ -14,8 +19,6 @@ HF_TOKEN = os.getenv("HF_TOKEN") or os.getenv("API_KEY", "")
 ENV_BASE_URL = os.getenv("ENV_BASE_URL", "http://localhost:7860")
 MAX_STEPS = 10
 TEMPERATURE = 0.1
-
-client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
 
 SYSTEM_PROMPT = """You are a financial analyst AI agent operating in the FinSight
  evaluation environment. You will receive financial data and must take actions using
@@ -29,6 +32,19 @@ Always include a reasoning field explaining your decision.
 Respond with ONLY valid JSON. No markdown. No explanation outside the JSON."""
 
 
+def _build_openai_client() -> tuple[Any | None, str | None]:
+    if OpenAI is None:
+        return None, "openai package import failed"
+
+    if not HF_TOKEN:
+        return None, "missing HF_TOKEN/API_KEY"
+
+    try:
+        return OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN), None
+    except Exception as exc:
+        return None, f"OpenAI init error: {exc}"
+
+
 def _safe_post(url: str, **kwargs):
     try:
         response = requests.post(url, timeout=30, **kwargs)
@@ -39,6 +55,9 @@ def _safe_post(url: str, **kwargs):
 
 def run_task(task_id: str) -> dict:
     session_id = str(uuid.uuid4())
+    client, client_error = _build_openai_client()
+    if client_error:
+        print(f"  [{task_id}] warning: {client_error}. Falling back to noop actions.")
 
     code, obs = _safe_post(
         f"{ENV_BASE_URL}/reset",
@@ -67,22 +86,29 @@ def run_task(task_id: str) -> dict:
         )
         messages.append({"role": "user", "content": user_content})
 
-        try:
-            completion = client.chat.completions.create(
-                model=MODEL_NAME,
-                messages=messages,
-                temperature=TEMPERATURE,
-                max_tokens=1000,
-            )
-            raw = (completion.choices[0].message.content or "").strip()
-            action = json.loads(raw)
-        except Exception as exc:
-            print(f"  [Step {step+1}] LLM/parsing error: {exc}. Using noop.")
+        if client is None:
             action = {
                 "action_type": "noop",
                 "payload": {},
-                "reasoning": "fallback due to model/parsing failure",
+                "reasoning": "fallback due to missing/unavailable model client",
             }
+        else:
+            try:
+                completion = client.chat.completions.create(
+                    model=MODEL_NAME,
+                    messages=messages,
+                    temperature=TEMPERATURE,
+                    max_tokens=1000,
+                )
+                raw = (completion.choices[0].message.content or "").strip()
+                action = json.loads(raw)
+            except Exception as exc:
+                print(f"  [Step {step+1}] LLM/parsing error: {exc}. Using noop.")
+                action = {
+                    "action_type": "noop",
+                    "payload": {},
+                    "reasoning": "fallback due to model/parsing failure",
+                }
 
         messages.append({"role": "assistant", "content": json.dumps(action)})
 
@@ -170,4 +196,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as exc:
+        print(f"Fatal inference error handled: {exc}")
